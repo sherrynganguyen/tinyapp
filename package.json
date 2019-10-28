@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/sherrynganguyen/tinyapp/issues"
   },
-  "homepage": "https://github.com/sherrynganguyen/tinyapp#readme"
+  "homepage": "https://github.com/sherrynganguyen/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

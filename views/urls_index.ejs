@@ -9,6 +9,9 @@
   <title>TinyApp</title>
 </head>
 <body>
+  <head>
+    <%include ./partials/_header %>
+  </head>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -18,7 +21,14 @@
           <th scope="col">Long URL</th>
         </tr>
       </thead>
-
+      <tbody>
+          <% for (let shortURL in urlDatabase) { %>
+            <tr>
+              <td><%= shortURL %></td>
+              <td><%= urlDatabase[shortURL] %></td>
+            </tr>
+          <% }; %>
+        </tbody>
     </table>
   </main>
   <!-- Bootstrap JS -->

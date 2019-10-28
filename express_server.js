@@ -11,7 +11,7 @@ const urlDatabase = {
 };
 
 app.get("/urls", (req, res) => {
-  let templateVars = {url: urlDatabase};
+  let templateVars = {urlDatabase: urlDatabase};
   res.render('urls_index', templateVars);
 });
 app.get("/", (req, res) => {

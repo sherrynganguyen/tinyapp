@@ -1,11 +1,3 @@
-// |x| After we generate our new shortURL, we add it to our database.
-// |x| Our server then responds with a redirect to /urls/:shortURL.
-// | | Our browser then makes a GET request to /urls/:shortURL.
-// | | Our server looks up the longURL from the database, sends the shortURL and longURL to the urls_show template, generates the HTML, and then sends this HTML back to the browser.
-// | | The browser then renders this HTML.
-
-
-
 const express = require("express");
 const app = express();
 const PORT = 8080;
@@ -26,7 +18,7 @@ function generateRandomString() {
     randomString += randomData.charAt(Math.floor(Math.random() * (randomData.length)));
   }
   return randomString;
-}
+};
 
 app.get("/", (req, res) => {
   res.json(urlDatabase);
@@ -48,8 +40,12 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  res.render("urls_show", templateVars);
+  if (!(`${req.params.shortURL}` in urlDatabase)) {
+    res.send("Incorrect URL");
+  } else {
+    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {

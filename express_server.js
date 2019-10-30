@@ -7,10 +7,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-let urlDatabase = {
+const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+//-------------------------------------------------------------------------//
 
 function generateRandomString() {
   const randomData = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -20,6 +22,8 @@ function generateRandomString() {
   }
   return randomString;
 }
+
+//-------------------------------------------------------------------------//
 
 app.get("/", (req, res) => {
   res.json(urlDatabase);

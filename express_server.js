@@ -53,7 +53,6 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    userName: req.cookies.userName,
     userID: users,
     urlDatabase: urlDatabase
   };
@@ -113,7 +112,7 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('userName', req.body.userName);
+  res.cookie.user_ID;
   res.redirect("/urls");
 });
 
@@ -131,13 +130,17 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status("404").send("Error");
-  } else if (checkEmail(req.body.email)) {
-    console.log(checkEmail(req.body.email));
+  } else if (!checkEmail(req.body.email)) {
     res.status("400").send("Email already exits");
   } else {
-    let userID = generateRandomString();
-    users[userID] = req.body;
-    res.cookie('userID', userID);
+    const userID = generateRandomString();
+    console.log(userID);
+    users[userID] = {
+      id: userID,
+      ...req.body
+    };
+    console.log(users);
+    res.cookie('user_ID', userID);
     res.redirect("/urls");
   }  
 });

@@ -8,11 +8,18 @@
         <div class="navbar-nav">
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-          <div class="text-right"></div>
-            <input class="form-control" type="text" name="longURL" placeholder="Username" style="width: 200px" margin: auto></form>
-            <button type="submit" class="btn-primary btn-sm" >Login</button> 
-          </div>
-        </div
+          <% if (!userName) {%>
+            <form clas="form-inline" method="POST" action="/login">
+              <input class="form-control" type="text" name="userName" placeholder="Username" style="width: 200px"; margin: auto>
+              <button type="submit" class="btn-primary btn-sm" >Login</button> </form>
+            </form> 
+          <% } else {%>
+          <form clas="form-inline" method="POST" action="/logout">
+            <a>Logged in as: <%=userName %></a>
+            <button type="submit" class="btn-primary btn-sm" >Logout</button> </form>
+          </form> 
+          <% } %> 
+        </div>
       </div>
     </nav>
   </header>

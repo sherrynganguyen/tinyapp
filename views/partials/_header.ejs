@@ -21,8 +21,8 @@
           <!-- use loged in -->
             <% } else {%>
             
-              <a>Logged in as: <%= userID%></a>
-              <form class="form-inline" method="POST" action="/logout">  
+              <a class="p-2">Logged in as: <%= email%></a>
+              <form class="mx-1 form-inline" method="POST" action="/logout">  
               <button type="submit" class="btn-primary btn-sm" >Logout</button></form>
             </form>
             <% } %> 

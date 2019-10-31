@@ -123,7 +123,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status("404").send("Incorrect email or password format.");
-  } else if (!checkUserByEmail(req.body.email, users)) {
+  } else if (checkUserByEmail(req.body.email, users)) {
     res.status("400").send("Email already exits");
   } else {
     const userID = aes256.encrypt(key, generateRandomString());

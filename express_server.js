@@ -26,8 +26,8 @@ const users = {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
 //-------------------------------------------------------------------------//
@@ -78,7 +78,12 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  if (req.cookies.user_ID) {
+    res.render("urls_new", {userID: req.cookies.user_ID, email: req.cookies.email});
+  } else {
+    res.redirect('/urls');
+  }
+
 });
 
 app.post("/urls", (req, res) => {
@@ -163,7 +168,6 @@ app.post("/register", (req, res) => {
       id: userID,
       ...req.body
     };
-    // console.log(users);
     
     // req.session.user_ID = userID;
     res.redirect("/urls");

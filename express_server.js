@@ -2,18 +2,22 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
+
+const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL} = require('./helpers');
+
 const bcrypt = require('bcrypt');
+
 const aes256 = require('aes256');
 const key = 'sherry';
+
 app.use(bodyParser.urlencoded({extended: true}));
-// app.use(cookieParser());
 app.use(cookieSession({
   name:'session',
-  keys: ['user_ID'],
+  keys: ['sherry'],
   maxAge: 24 * 60 * 60 * 1000
 }));
+
 app.set("view engine", "ejs");
 
 const users = {
@@ -35,44 +39,44 @@ const urlDatabase = {
 };
 
 //---------------------------------------------------------------------------------------//
+// // const generateRandomString = function() {
+// function generateRandomString() {
+//   const randomData = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+//   let randomString = "";
+//   for (let i = 0; i < 6; i++) {
+//     randomString += randomData.charAt(Math.floor(Math.random() * (randomData.length)));
+//   }
+//   return randomString;
+// }
 
-function generateRandomString() {
-  const randomData = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let randomString = "";
-  for (let i = 0; i < 6; i++) {
-    randomString += randomData.charAt(Math.floor(Math.random() * (randomData.length)));
-  }
-  return randomString;
-}
+// function checkEmail(email) {
+//   for (let user in users) {
+//     if (email === users[user].email) {
+//       return false;
+//     }
+//     return true;
+//   }
+// }
 
-function checkEmail(email) {
-  for (let user in users) {
-    if (email === users[user].email) {
-      return false;
-    }
-    return true;
-  }
-}
+// function verifyExistedEmail(email) {
+//   let verifiedID = "";
+//   for (let user in users) {
+//     if (email === users[user].email) {
+//       verifiedID = users[user].id;
+//     }
+//   }
+//   return verifiedID;
+// }
 
-function verifyExistedEmail(email) {
-  let verifiedID = "";
-  for (let user in users) {
-    if (email === users[user].email) {
-      verifiedID = users[user].id;
-    }
-  }
-  return verifiedID;
-}
-
-function findUserURL(userID) {
-  let userURLList = [];
-  for (let shortURL in urlDatabase) {
-    if (userID === urlDatabase[shortURL].userID) {
-      userURLList[shortURL] = urlDatabase[shortURL].longURL;
-    }
-  }
-  return userURLList;
-}
+// function findUserURL(userID) {
+//   let userURLList = [];
+//   for (let shortURL in urlDatabase) {
+//     if (userID === urlDatabase[shortURL].userID) {
+//       userURLList[shortURL] = urlDatabase[shortURL].longURL;
+//     }
+//   }
+//   return userURLList;
+// }
 
 //---------------------------------------------------------------------------------------//
 
@@ -85,7 +89,7 @@ app.get("/urls", (req, res) => {
   email = req.session.email;
   if (req.session.user_ID) {
     let templateVars = {
-      urlDatabase: findUserURL(req.session.user_ID)
+      urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
     };
     res.render('urls_index', templateVars);
   } else {
@@ -159,7 +163,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status("404").send("Incorrect email or password format.");
-  } else if (!checkEmail(req.body.email)) {
+  } else if (!checkUserByEmail(req.body.email, users)) {
     res.status("400").send("Email already exits");
   } else {
     const userID = aes256.encrypt(key, generateRandomString());
@@ -176,12 +180,13 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  if (verifyExistedEmail(req.body.email) === "") {
+  const userID = findUserByEmail(req.body.email, users);
+  if (userID === "") {
     res.send('Email does not exist in our site.');
   } else {
-    if (bcrypt.compareSync(req.body.password, users[verifyExistedEmail(req.body.email)].password)) {
-      req.session.user_ID = verifyExistedEmail(req.body.email);
-      req.session.email = users[verifyExistedEmail(req.body.email)].email;
+    if (bcrypt.compareSync(req.body.password, users[userID].password)) {
+      req.session.user_ID = userID;
+      req.session.email = users[userID].email;
       res.redirect("/urls");
     } else {
       res.send('Incorrect password');

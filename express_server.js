@@ -109,14 +109,22 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   userID= req.cookies.user_ID;
   email= req.cookies.email;
-  if (!(`${req.params.shortURL}` in urlDatabase)) {
-    res.send("Incorrect URL");
+  let templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL
+  };
+  if (req.cookies.user_ID === urlDatabase[req.params.shortURL].userID) {
+    if (!(`${req.params.shortURL}` in urlDatabase)) {
+      res.send("Incorrect URL");
+    } else {
+      res.render("urls_show", templateVars);
+    }
   } else {
-    let templateVars = {
-      shortURL: req.params.shortURL,
-      longURL: urlDatabase[req.params.shortURL].longURL
-    };
-    res.render("urls_show", templateVars);
+    if (templateVars.longURL.indexOf('http') === 0) {
+      res.redirect(templateVars.longURL);
+    } else {
+      res.redirect("http://" + templateVars.longURL);
+    }
   }
 });
 
@@ -129,22 +137,38 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+app.get("/urls/:shortURL/delete", (req, res) => {
+  if (req.cookies.user_ID && req.cookies.user_ID !== urlDatabase[req.params.shortURL].userID) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/urls");
+  }
+});
+
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  if (req.cookies.user_ID && req.cookies.user_ID !== urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.redirect("/urls");
+  }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  res.render("urls_show");
-});
+// app.get("/u/:shortURL", (req, res) => {
+//     res.render("urls_show");
+// });
 
 app.post("/u/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  res.redirect(`/urls`);
+  if (req.cookies.user_ID && req.cookies.user_ID === urlDatabase[req.params.shortURL].userID) {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect(`/urls`);
+  } else {
+    res.redirect(`/u/:shortURL`);
+  }  
 });
 
 //--------------------------------------------------------// login
@@ -182,7 +206,7 @@ app.post("/register", (req, res) => {
   } else {
     const userID = generateRandomString();
     res.cookie('user_ID', userID);
-    res.cookie('email', email);
+    res.cookie('email', req.body.email);
     users[userID] = {
       id: userID,
       ...req.body

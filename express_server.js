@@ -70,7 +70,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     userID: req.cookies.user_ID,
-    // email: req.cookies.email,
+    email: req.cookies.email,
     // userID: req.session.user_ID,
     urlDatabase: urlDatabase
   };
@@ -134,6 +134,7 @@ app.post("/login", (req, res) => {
     res.send('Error');
   } else {
     res.cookie('user_ID', users[verifyExistedEmail(req.body.email)].id);
+    res.cookie('email', users[verifyExistedEmail(req.body.email)].email);
     res.redirect("/urls");
   }
 });
@@ -157,7 +158,7 @@ app.post("/register", (req, res) => {
   } else {
     const userID = generateRandomString();
     res.cookie('user_ID', userID);
-    // res.cookie('email', email);
+    res.cookie('email', email);
     users[userID] = {
       id: userID,
       ...req.body

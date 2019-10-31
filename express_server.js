@@ -73,8 +73,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies.user_ID;
-  const email = req.cookies.email;
+  userID = req.cookies.user_ID;
+  email = req.cookies.email;
   if (req.cookies.user_ID) {
     let templateVars = {
       urlDatabase: findUserURL(req.cookies.user_ID)
@@ -108,8 +108,8 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userID = req.cookies.user_ID;
-  const email = req.cookies.email;
+  userID = req.cookies.user_ID;
+  email = req.cookies.email;
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL

@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const aes256 = require('aes256');
+const key = 'sherry';
 app.use(bodyParser.urlencoded({extended: true}));
 // app.use(cookieParser());
 app.use(cookieSession ({
@@ -15,21 +17,21 @@ app.use(cookieSession ({
 app.set("view engine", "ejs");
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==": {
+    id: "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==",
     email: "user@example.com",
     password: "$2b$10$f9ETSYlgdTFV53vpYMWjG.epNDqxBEIJWvKPfTZVowKtTp0wJYYX6"
   },
-  "user2RandomID": {
-    id: "user2RandomID",
+  "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=": {
+    id: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=",
     email: "user2@example.com",
     password: "$2b$10$yrRsbjMU6.9z1WhUaqGh0OUtx51oC9NdZj7fIXaGIOAJ/DuLIoozi"
   }
 };
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=" }
 };
 
 //---------------------------------------------------------------------------------------//
@@ -59,6 +61,8 @@ function verifyExistedEmail(email) {
       verifiedID = users[user].id;
     }
   }
+  // console.log(verifiedID);
+  // return aes256.decrypt(key, verifiedID);
   return verifiedID;
 }
 
@@ -138,11 +142,13 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
-app.get("/u/:shortURL", (req, res) => {
-  res.render("urls_show");
-});
+// app.get("/u/:shortURL", (req, res) => {
+//   res.render("urls_show");
+// });
 
 app.get("/u/:shortURL", (req, res) => {
+  // console.log(req.params.shortURL);
+  // console.log(urlDatabase[req.params.shortURL].longURL);
   let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   if (templateVars.longURL.indexOf('http') === 0) {
     res.redirect(templateVars.longURL);
@@ -163,7 +169,7 @@ app.post("/register", (req, res) => {
   } else if (!checkEmail(req.body.email)) {
     res.status("400").send("Email already exits");
   } else {
-    const userID = generateRandomString();
+    const userID = aes256.encrypt(key, generateRandomString());
     const hashedPassword = bcrypt.hashSync(req.body.password, 5);
     req.session.user_ID = userID;
     req.session.email = req.body.email;
@@ -178,11 +184,12 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+  console.log(verifyExistedEmail(req.body.email));
   if (verifyExistedEmail(req.body.email) === "") {
     res.send('Email does not exist in our site.');
   } else {
       if (bcrypt.compareSync(req.body.password, users[verifyExistedEmail(req.body.email)].password)) {
-        req.session.user_ID = users[verifyExistedEmail(req.body.email)].id;
+        req.session.user_ID = verifyExistedEmail(req.body.email);
         req.session.email = users[verifyExistedEmail(req.body.email)].email;
         res.redirect("/urls");
       } else {
@@ -214,6 +221,8 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/u/:shortURL", (req, res) => {
+  console.log(req.session.user_ID);
+  console.log(urlDatabase[req.params.shortURL].userID);
   if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect(`/urls`);

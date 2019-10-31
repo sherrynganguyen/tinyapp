@@ -7,15 +7,15 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "123"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
     password: "456"
   }
 };
@@ -73,8 +73,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  userID = req.cookies.user_ID;
-  email = req.cookies.email;
+  const userID = req.cookies.user_ID;
+  const email = req.cookies.email;
   if (req.cookies.user_ID) {
     let templateVars = {
       urlDatabase: findUserURL(req.cookies.user_ID)
@@ -108,8 +108,8 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  userID= req.cookies.user_ID;
-  email= req.cookies.email;
+  const userID = req.cookies.user_ID;
+  const email = req.cookies.email;
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
@@ -138,7 +138,7 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-/*User registration endpoints. 
+/*User registration endpoints.
   Handling error such as:
     - Register with empty email/password, existed email address
     - Log in with email that is not in database
@@ -158,7 +158,7 @@ app.post("/register", (req, res) => {
       ...req.body
     };
     res.redirect("/urls");
-  }  
+  }
 });
 
 app.post("/login", (req, res) => {
@@ -199,7 +199,7 @@ app.post("/u/:shortURL", (req, res) => {
     res.redirect(`/urls`);
   } else {
     res.redirect(`/u/:shortURL`);
-  }  
+  }
 });
 
 app.listen(PORT, () => {

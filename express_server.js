@@ -137,16 +137,16 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-app.get("/urls/:shortURL/delete", (req, res) => {
-  if (req.cookies.user_ID && req.cookies.user_ID !== urlDatabase[req.params.shortURL].userID) {
-    res.redirect("/urls");
-  } else {
-    res.redirect("/urls");
-  }
-});
+// app.get("/urls/:shortURL/delete", (req, res) => {
+//   // if (req.cookies.user_ID && req.cookies.user_ID !== urlDatabase[req.params.shortURL].userID) {
+//     res.redirect("/urls");
+//   // } else {
+//     // res.redirect("/urls");
+//   // }
+// });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.cookies.user_ID && req.cookies.user_ID !== urlDatabase[req.params.shortURL].userID) {
+  if (req.cookies.user_ID && req.cookies.user_ID === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {

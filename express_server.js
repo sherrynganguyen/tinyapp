@@ -3,15 +3,20 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+// const cookieSession = require('cookie-session');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
+// app.use(cookieSession({
+//   name: 'session',
+//   keys: ['user_ID'],
+// }))
 
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: "123"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -53,7 +58,8 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    userID: users,
+    userID: req.cookies.user_ID,
+    // userID: req.session.user_ID,
     urlDatabase: urlDatabase
   };
   res.render('urls_index', templateVars);
@@ -108,23 +114,31 @@ app.post("/u/:shortURL", (req, res) => {
 //--------------------------------------------------------// login
 
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+  res.render("urls_login", {userID: null});
 });
 
 app.post("/login", (req, res) => {
-  res.cookie.user_ID;
-  res.redirect("/urls");
+  for (let user in users) {
+    if (req.body.email === users[user].email && req.body.password === users[user].password) {
+      res.cookie('user_ID', users[user].id)
+      res.redirect("/urls");
+    } else {
+      res.send('Email is not on file');
+    }
+  }
+  // req.session.user_ID;
+  
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('userName', req.body.userName);
+  res.clearCookie('user_ID', req.body.userID);
   res.redirect("/urls");
 });
 
 //---------------------------------------------------------// register endpoint
 
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  res.render("urls_register",{ userID: req.cookies.user_ID });
 });
 
 app.post("/register", (req, res) => {
@@ -134,13 +148,14 @@ app.post("/register", (req, res) => {
     res.status("400").send("Email already exits");
   } else {
     const userID = generateRandomString();
-    console.log(userID);
+    // console.log(userID);
     users[userID] = {
       id: userID,
       ...req.body
     };
-    console.log(users);
-    res.cookie('user_ID', userID);
+    // console.log(users);
+    res.cookie('user_ID', userID, {domain: 'http://localhost:8000'});
+    // req.session.user_ID = userID;
     res.redirect("/urls");
   }  
 });

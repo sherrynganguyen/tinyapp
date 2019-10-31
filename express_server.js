@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
@@ -11,12 +12,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "123"
+    password: "$2b$10$f9ETSYlgdTFV53vpYMWjG.epNDqxBEIJWvKPfTZVowKtTp0wJYYX6"
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "456"
+    password: "$2b$10$yrRsbjMU6.9z1WhUaqGh0OUtx51oC9NdZj7fIXaGIOAJ/DuLIoozi"
   }
 };
 
@@ -151,24 +152,31 @@ app.post("/register", (req, res) => {
     res.status("400").send("Email already exits");
   } else {
     const userID = generateRandomString();
+    const hashedPassword = bcrypt.hashSync(req.body.password, 5);
     res.cookie('user_ID', userID);
     res.cookie('email', req.body.email);
     users[userID] = {
       id: userID,
       ...req.body
     };
+    users[userID].password = hashedPassword;
+    console.log(users);
     res.redirect("/urls");
   }
 });
 
 app.post("/login", (req, res) => {
   if (verifyExistedEmail(req.body.email) === "") {
-    res.send('Incorrect email or password');
+    res.send('Email does not exist in our site.');
   } else {
-    res.cookie('user_ID', users[verifyExistedEmail(req.body.email)].id);
-    res.cookie('email', users[verifyExistedEmail(req.body.email)].email);
-    res.redirect("/urls");
-  }
+      if (bcrypt.compareSync(req.body.password, users[verifyExistedEmail(req.body.email)].password)) {
+        res.cookie('user_ID', users[verifyExistedEmail(req.body.email)].id);
+        res.cookie('email', users[verifyExistedEmail(req.body.email)].email);
+        res.redirect("/urls");
+      } else {
+        res.send('Incorrect password');
+      }
+    }
 });
 
 app.post("/logout", (req, res) => {

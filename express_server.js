@@ -60,6 +60,16 @@ function verifyExistedEmail(email) {
   return verifiedID;
 }
 
+function findUserURL(userID) {
+  let userURLList = [];
+  for (let shortURL in urlDatabase) {
+    if (userID === urlDatabase[shortURL].userID) {
+      userURLList[shortURL] = urlDatabase[shortURL].longURL;
+    }
+  }
+  return userURLList;
+}
+
 
 //-------------------------------------------------------------------------//
 
@@ -68,13 +78,17 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    userID: req.cookies.user_ID,
-    email: req.cookies.email,
-    // userID: req.session.user_ID,
-    urlDatabase: urlDatabase
-  };
-  res.render('urls_index', templateVars);
+  userID = req.cookies.user_ID;
+  email = req.cookies.email;
+  if (req.cookies.user_ID) {
+    let templateVars = {
+      urlDatabase: findUserURL(req.cookies.user_ID)
+    };
+    
+    res.render('urls_index', templateVars);
+  } else {
+    res.redirect('/urls');
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -88,21 +102,26 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   let newURL = `${generateRandomString()}`;
-  urlDatabase[newURL] = req.body.longURL;
+  urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.cookies.user_ID};
   res.redirect(`/urls/${newURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  userID= req.cookies.user_ID;
+  email= req.cookies.email;
   if (!(`${req.params.shortURL}` in urlDatabase)) {
     res.send("Incorrect URL");
   } else {
-    let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+    let templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL
+    };
     res.render("urls_show", templateVars);
   }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   if (templateVars.longURL.indexOf('http') === 0) {
     res.redirect(templateVars.longURL);
   } else {

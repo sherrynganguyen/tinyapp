@@ -43,7 +43,7 @@ function generateRandomString() {
 
 function checkEmail(email) {
   for (let user in users) {
-    if (email === users[email]) {
+    if (email === users[user].email) {
       return false;
     }
     return true;
@@ -148,13 +148,12 @@ app.post("/register", (req, res) => {
     res.status("400").send("Email already exits");
   } else {
     const userID = generateRandomString();
-    // console.log(userID);
     users[userID] = {
       id: userID,
       ...req.body
     };
-    // console.log(users);
-    res.cookie('user_ID', userID, {domain: 'http://localhost:8000'});
+    console.log(users);
+    res.cookie('user_ID', userID);
     // req.session.user_ID = userID;
     res.redirect("/urls");
   }  

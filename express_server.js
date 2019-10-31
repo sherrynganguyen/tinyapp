@@ -9,11 +9,11 @@ const aes256 = require('aes256');
 const key = 'sherry';
 app.use(bodyParser.urlencoded({extended: true}));
 // app.use(cookieParser());
-app.use(cookieSession ({
+app.use(cookieSession({
   name:'session',
   keys: ['user_ID'],
   maxAge: 24 * 60 * 60 * 1000
-}))
+}));
 app.set("view engine", "ejs");
 
 const users = {
@@ -82,7 +82,7 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   userID = req.session.user_ID;
-  email = req.session.email;  
+  email = req.session.email;
   if (req.session.user_ID) {
     let templateVars = {
       urlDatabase: findUserURL(req.session.user_ID)
@@ -179,14 +179,14 @@ app.post("/login", (req, res) => {
   if (verifyExistedEmail(req.body.email) === "") {
     res.send('Email does not exist in our site.');
   } else {
-      if (bcrypt.compareSync(req.body.password, users[verifyExistedEmail(req.body.email)].password)) {
-        req.session.user_ID = verifyExistedEmail(req.body.email);
-        req.session.email = users[verifyExistedEmail(req.body.email)].email;
-        res.redirect("/urls");
-      } else {
-        res.send('Incorrect password');
-      }
+    if (bcrypt.compareSync(req.body.password, users[verifyExistedEmail(req.body.email)].password)) {
+      req.session.user_ID = verifyExistedEmail(req.body.email);
+      req.session.email = users[verifyExistedEmail(req.body.email)].email;
+      res.redirect("/urls");
+    } else {
+      res.send('Incorrect password');
     }
+  }
 });
 
 app.post("/logout", (req, res) => {

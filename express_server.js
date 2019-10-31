@@ -21,7 +21,7 @@ const users = {
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: "456"
   }
 };
 
@@ -50,6 +50,17 @@ function checkEmail(email) {
   }
 }
 
+function verifyExistedEmail(email) {
+  let verifiedID = "";
+  for (let user in users) {
+    if (email === users[user].email) {
+      verifiedID = users[user].id;
+    }
+  }
+  return verifiedID;
+}
+
+
 //-------------------------------------------------------------------------//
 
 app.get("/", (req, res) => {
@@ -59,6 +70,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     userID: req.cookies.user_ID,
+    // email: req.cookies.email,
     // userID: req.session.user_ID,
     urlDatabase: urlDatabase
   };
@@ -118,16 +130,12 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  for (let user in users) {
-    if (req.body.email === users[user].email && req.body.password === users[user].password) {
-      res.cookie('user_ID', users[user].id)
-      res.redirect("/urls");
-    } else {
-      res.send('Email is not on file');
-    }
+  if (verifyExistedEmail(req.body.email) === "") {
+    res.send('Error');
+  } else {
+    res.cookie('user_ID', users[verifyExistedEmail(req.body.email)].id);
+    res.redirect("/urls");
   }
-  // req.session.user_ID;
-  
 });
 
 app.post("/logout", (req, res) => {
@@ -148,12 +156,14 @@ app.post("/register", (req, res) => {
     res.status("400").send("Email already exits");
   } else {
     const userID = generateRandomString();
+    res.cookie('user_ID', userID);
+    // res.cookie('email', email);
     users[userID] = {
       id: userID,
       ...req.body
     };
-    console.log(users);
-    res.cookie('user_ID', userID);
+    // console.log(users);
+    
     // req.session.user_ID = userID;
     res.redirect("/urls");
   }  

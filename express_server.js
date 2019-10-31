@@ -3,9 +3,27 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+// const cookieSession = require('cookie-session');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
+// app.use(cookieSession({
+//   name: 'session',
+//   keys: ['user_ID'],
+// }))
+
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "123"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "456"
+  }
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -23,6 +41,26 @@ function generateRandomString() {
   return randomString;
 }
 
+function checkEmail(email) {
+  for (let user in users) {
+    if (email === users[user].email) {
+      return false;
+    }
+    return true;
+  }
+}
+
+function verifyExistedEmail(email) {
+  let verifiedID = "";
+  for (let user in users) {
+    if (email === users[user].email) {
+      verifiedID = users[user].id;
+    }
+  }
+  return verifiedID;
+}
+
+
 //-------------------------------------------------------------------------//
 
 app.get("/", (req, res) => {
@@ -31,7 +69,9 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   let templateVars = {
-    userName: req.cookies.userName,
+    userID: req.cookies.user_ID,
+    email: req.cookies.email,
+    // userID: req.session.user_ID,
     urlDatabase: urlDatabase
   };
   res.render('urls_index', templateVars);
@@ -85,16 +125,51 @@ app.post("/u/:shortURL", (req, res) => {
 
 //--------------------------------------------------------// login
 
+app.get("/login", (req, res) => {
+  res.render("urls_login", {userID: null});
+});
 
 app.post("/login", (req, res) => {
-  res.cookie('userName', req.body.userName);
-  res.redirect("/urls");
+  if (verifyExistedEmail(req.body.email) === "") {
+    res.send('Error');
+  } else {
+    res.cookie('user_ID', users[verifyExistedEmail(req.body.email)].id);
+    res.cookie('email', users[verifyExistedEmail(req.body.email)].email);
+    res.redirect("/urls");
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('userName', req.body.userName);
+  res.clearCookie('user_ID', req.body.userID);
   res.redirect("/urls");
 });
+
+//---------------------------------------------------------// register endpoint
+
+app.get("/register", (req, res) => {
+  res.render("urls_register",{ userID: req.cookies.user_ID });
+});
+
+app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.status("404").send("Error");
+  } else if (!checkEmail(req.body.email)) {
+    res.status("400").send("Email already exits");
+  } else {
+    const userID = generateRandomString();
+    res.cookie('user_ID', userID);
+    res.cookie('email', email);
+    users[userID] = {
+      id: userID,
+      ...req.body
+    };
+    // console.log(users);
+    
+    // req.session.user_ID = userID;
+    res.redirect("/urls");
+  }  
+});
+
 app.listen(PORT, () => {
   console.log("Example app listening on port ${PORT}!");
 });

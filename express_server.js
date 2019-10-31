@@ -61,8 +61,6 @@ function verifyExistedEmail(email) {
       verifiedID = users[user].id;
     }
   }
-  // console.log(verifiedID);
-  // return aes256.decrypt(key, verifiedID);
   return verifiedID;
 }
 
@@ -79,13 +77,10 @@ function findUserURL(userID) {
 //---------------------------------------------------------------------------------------//
 
 app.get("/", (req, res) => {
-  // res.json(urlDatabase);
   res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
-  // userID = req.cookies.user_ID;
-  // email = req.cookies.email;
   userID = req.session.user_ID;
   email = req.session.email;  
   if (req.session.user_ID) {
@@ -147,8 +142,6 @@ app.get("/urls/:shortURL", (req, res) => {
 // });
 
 app.get("/u/:shortURL", (req, res) => {
-  // console.log(req.params.shortURL);
-  // console.log(urlDatabase[req.params.shortURL].longURL);
   let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   if (templateVars.longURL.indexOf('http') === 0) {
     res.redirect(templateVars.longURL);
@@ -178,13 +171,11 @@ app.post("/register", (req, res) => {
       ...req.body
     };
     users[userID].password = hashedPassword;
-    console.log(users);
     res.redirect("/urls");
   }
 });
 
 app.post("/login", (req, res) => {
-  console.log(verifyExistedEmail(req.body.email));
   if (verifyExistedEmail(req.body.email) === "") {
     res.send('Email does not exist in our site.');
   } else {
@@ -221,8 +212,6 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/u/:shortURL", (req, res) => {
-  console.log(req.session.user_ID);
-  console.log(urlDatabase[req.params.shortURL].userID);
   if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect(`/urls`);

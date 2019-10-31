@@ -87,7 +87,7 @@ app.get("/urls", (req, res) => {
     
     res.render('urls_index', templateVars);
   } else {
-    res.redirect('/urls');
+    res.redirect('/login');
   }
 });
 
@@ -143,7 +143,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/u/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.redirect(`/urls`);
 });
 

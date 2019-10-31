@@ -39,46 +39,6 @@ const urlDatabase = {
 };
 
 //---------------------------------------------------------------------------------------//
-// // const generateRandomString = function() {
-// function generateRandomString() {
-//   const randomData = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-//   let randomString = "";
-//   for (let i = 0; i < 6; i++) {
-//     randomString += randomData.charAt(Math.floor(Math.random() * (randomData.length)));
-//   }
-//   return randomString;
-// }
-
-// function checkEmail(email) {
-//   for (let user in users) {
-//     if (email === users[user].email) {
-//       return false;
-//     }
-//     return true;
-//   }
-// }
-
-// function verifyExistedEmail(email) {
-//   let verifiedID = "";
-//   for (let user in users) {
-//     if (email === users[user].email) {
-//       verifiedID = users[user].id;
-//     }
-//   }
-//   return verifiedID;
-// }
-
-// function findUserURL(userID) {
-//   let userURLList = [];
-//   for (let shortURL in urlDatabase) {
-//     if (userID === urlDatabase[shortURL].userID) {
-//       userURLList[shortURL] = urlDatabase[shortURL].longURL;
-//     }
-//   }
-//   return userURLList;
-// }
-
-//---------------------------------------------------------------------------------------//
 
 app.get("/", (req, res) => {
   res.redirect("/urls");

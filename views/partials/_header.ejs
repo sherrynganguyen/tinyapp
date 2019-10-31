@@ -10,12 +10,23 @@
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         </div> 
         <div class="d-flex justify-content-flex-end"> 
+          <!-- user not log in  -->
+            <% if (!userID) {%>
             <form class="form-inline" method="GET" action="/login">
               <button type="submit" class="btn-primary btn-sm" >Login</button></form>
             </form>
             <form class="form-inline" method="GET" action="/register">
               <button type="submit" class="btn-primary btn-sm" >Register</button></form>
             </form> 
+          <!-- use loged in -->
+            <% } else {%>
+            
+              <a>Logged in as: <%= userID%></a>
+              <form class="form-inline" method="POST" action="/logout">  
+              <button type="submit" class="btn-primary btn-sm" >Logout</button></form>
+            </form>
+            <% } %> 
+
         </div>
       </div>
     </nav>

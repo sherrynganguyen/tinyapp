@@ -36,9 +36,22 @@ const findUserURL = function(userID, database) {
   return userURLList;
 };
 
+const findLongURL = function(shortURL, database) {
+  let longURL = "";
+  for (let url in database) {
+    if (shortURL === url) {
+      longURL = database[url].longURL;
+      return longURL;
+    }
+    longURL = undefined;
+  }
+  return longURL;
+};
+
 module.exports = {
   generateRandomString,
   checkUserByEmail,
   findUserByEmail,
-  findUserURL
+  findUserURL,
+  findLongURL
 };

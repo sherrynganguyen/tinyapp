@@ -38,8 +38,9 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=" }
 };
 
-
 //---------------------------------------------------------------------------------------//
+
+//Website defaut, login/register pages
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -50,24 +51,6 @@ app.get("/", (req, res) => {
     res.redirect("/urls");
   } else {
     res.redirect("/login");
-  }
-});
-
-app.get("/urls", (req, res) => {
-  if (req.session.user_ID) {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
-    };
-    res.render("urls_index", templateVars);
-  } else {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "Please login or register",
-    };
-    res.render("urls_error", templateVars);
   }
 });
 
@@ -86,6 +69,85 @@ app.get("/login", (req, res) => {
     res.render("urls_login", {userID: null});
   }
 });
+
+/*User registration endpoints.
+  Handling error such as:
+    - Register with empty email/password, existed email address
+    - Log in with email that is not in database
+*/
+
+app.post("/register", (req, res) => {
+  let templateVars = {
+    userID: req.session.user_ID,
+    email: req.session.email
+  };
+  if (req.body.email === "" || req.body.password === "") {
+    templateVars["message"] = "Incorrect password/username format";
+    res.render("urls_error", templateVars);
+  } else if (checkUserByEmail(req.body.email, users)) {
+    templateVars["message"] = "Email existed. Process to login";
+    res.render("urls_error", templateVars);
+  } else {
+    const userID = aes256.encrypt(key, generateRandomString());
+    const hashedPassword = bcrypt.hashSync(req.body.password, 5);
+    req.session.user_ID = userID;
+    req.session.email = req.body.email;
+    users[userID] = {
+      id: userID,
+      ...req.body
+    };
+    users[userID].password = hashedPassword;
+    res.redirect("/urls");
+  }
+});
+
+app.post("/login", (req, res) => {
+  const userID = findUserByEmail(req.body.email, users);
+  if (userID === "") {
+    let templateVars = {
+      userID: userID,
+      email: req.session.email,
+      message: "Incorrect email address."
+    };
+    res.render("urls_error", templateVars);
+  } else {
+    if (bcrypt.compareSync(req.body.password, users[userID].password)) {
+      req.session.user_ID = userID;
+      req.session.email = users[userID].email;
+      res.redirect("/urls");
+    } else {
+      let templateVars = {
+        userID: req.session.user_ID,
+        email: req.session.email,
+        message: "Incorrect password/username. Please try again!"
+      };
+      res.render("urls_error", templateVars);
+    }
+  }
+});
+
+app.post("/logout", (req, res) => {
+  req.session = null;
+  res.redirect("/");
+});
+
+// Specific User features - List of URLs 
+
+app.get("/urls", (req, res) => {
+  let templateVars = {
+    userID: req.session.user_ID,
+    email: req.session.email,
+    urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
+  };
+  if (req.session.user_ID) {
+    res.render("urls_index", templateVars);
+  } else {
+    templateVars["message"] = "Please login or register";
+    res.render("urls_error", templateVars);
+  }
+});
+
+// Add/Delete/Edit URL - Handling error when non-users or another users access to the links
 
 app.get("/urls/new", (req, res) => {
   if (req.session.user_ID) {
@@ -110,118 +172,6 @@ app.post("/urls", (req, res) => {
   }
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  if (!(`${req.params.shortURL}` in urlDatabase)) {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "Incorrect URL",
-    };
-    res.render("urls_error", templateVars);
-  } else {
-    if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-      let templateVars = {
-        userID: req.session.user_ID,
-        email: req.session.email,
-        shortURL: req.params.shortURL,
-        longURL: urlDatabase[req.params.shortURL].longURL
-      };
-      res.render("urls_show", templateVars);
-    } else {
-      let templateVars = {
-        userID: req.session.user_ID,
-        email: req.session.email,
-        message: "You do not have access to this link"
-      };
-      res.render("urls_error", templateVars);
-    }
-  }
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  if (!findLongURL(shortURL, urlDatabase)) {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "Your shortenURL is incorrect"
-    };
-    res.render("urls_error", templateVars);
-  } else {
-    let longURL = findLongURL(shortURL, urlDatabase);
-    if (longURL.indexOf('http') === 0) {
-      res.redirect(longURL);
-    } else {
-      res.redirect("http://" + longURL);
-    }
-  }
-});
-
-/*User registration endpoints.
-  Handling error such as:
-    - Register with empty email/password, existed email address
-    - Log in with email that is not in database
-*/
-
-app.post("/register", (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "Incorrect password/username format"
-    };
-    res.render("urls_error", templateVars);
-  } else if (checkUserByEmail(req.body.email, users)) {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "Email existed. Process to login",
-    };
-    res.render("urls_error", templateVars);
-  } else {
-    const userID = aes256.encrypt(key, generateRandomString());
-    const hashedPassword = bcrypt.hashSync(req.body.password, 5);
-    req.session.user_ID = userID;
-    req.session.email = req.body.email;
-    users[userID] = {
-      id: userID,
-      ...req.body
-    };
-    users[userID].password = hashedPassword;
-    res.redirect("/urls");
-  }
-});
-
-app.post("/login", (req, res) => {
-  const userID = findUserByEmail(req.body.email, users);
-  if (userID === "") {
-    res.send("Email does not exist in our site.");
-  } else {
-    if (bcrypt.compareSync(req.body.password, users[userID].password)) {
-      req.session.user_ID = userID;
-      req.session.email = users[userID].email;
-      res.redirect("/urls");
-    } else {
-      let templateVars = {
-        userID: req.session.user_ID,
-        email: req.session.email,
-        message: "Incorrect password/username. Please try again!"
-      };
-      res.render("urls_error", templateVars);
-    }
-  }
-});
-
-app.post("/logout", (req, res) => {
-  req.session = null;
-  res.redirect("/");
-});
-
-/* Edit/Delete feature for users
-   Not allow another users and non-users delete or edit URLs do not belong to them.
-   Either redirect them to login pages (delete cases) or redirect to longURL pages (access to shortURL by the link)
-*/
-
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -245,6 +195,45 @@ app.post("/u/:shortURL", (req, res) => {
     res.redirect("/urls");
   } else {
     res.redirect("/u/:shortURL");
+  }
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = { 
+    userID: req.session.user_ID,
+    email: req.session.email,
+  }
+  if (!(`${req.params.shortURL}` in urlDatabase)) {
+    templateVars["message"] = "Incorrect URL"
+    res.render("urls_error", templateVars);
+  } else {
+    if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+      templateVars["shortURL"] = req.params.shortURL;
+      templateVars["longURL"] = urlDatabase[req.params.shortURL].longURL;
+      res.render("urls_show", templateVars);
+    } else {
+      templateVars["message"] = "You do not have access to this link";
+      res.render("urls_error", templateVars);
+    }
+  }
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  if (!findLongURL(shortURL, urlDatabase)) {
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: "Your shortenURL is incorrect"
+    };
+    res.render("urls_error", templateVars);
+  } else {
+    let longURL = findLongURL(shortURL, urlDatabase);
+    if (longURL.indexOf('http') === 0) {
+      res.redirect(longURL);
+    } else {
+      res.redirect("http://" + longURL);
+    }
   }
 });
 

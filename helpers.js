@@ -21,7 +21,9 @@ const findUserByEmail = function(email, database) {
   for (let user in database) {
     if (email === database[user].email) {
       verifiedID = database[user].id;
+      return verifiedID;
     }
+    verifiedID = "";
   }
   return verifiedID;
 };

@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
+const getDomainUrl = require('get-domain-url');
 
 const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, findLongURL} = require('./helpers');
 
@@ -79,10 +80,10 @@ app.post("/register", (req, res) => {
     email: req.session.email
   };
   if (req.body.email === "" || req.body.password === "") {
-    templateVars["message"] = "Incorrect password/username format";
+    templateVars["message"] = "Incorrect password/username format.";
     res.render("urls_error", templateVars);
   } else if (checkUserByEmail(req.body.email, users)) {
-    templateVars["message"] = "Email existed. Process to login";
+    templateVars["message"] = "Email existed. Process to login.";
     res.render("urls_error", templateVars);
   } else {
     const userID = generateRandomString();
@@ -128,7 +129,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/");
 });
 
-// Specific User features - List of URLs 
+// Specific User features - List of URLs
 
 app.get("/urls", (req, res) => {
   let templateVars = {
@@ -140,12 +141,14 @@ app.get("/urls", (req, res) => {
   if (req.session.user_ID) {
     res.render("urls_index", templateVars);
   } else {
-    templateVars["message"] = "Please login or register";
+    templateVars["message"] = "Please login or register!";
     res.render("urls_error", templateVars);
   }
 });
 
 // Add/Delete/Edit URL - Handling error when non-users or another users access to the links
+
+// Create new URL
 
 app.get("/urls/new", (req, res) => {
   if (req.session.user_ID) {
@@ -156,53 +159,34 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  let templateVars = {
+    userID: req.session.user_ID,
+    email: req.session.email
+  };
   if (req.session.user_ID) {
     let newURL = `${generateRandomString()}`;
-    urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID};
-    res.redirect(`/urls/${newURL}`);
+    if (getDomainUrl(req.body.longURL)) {
+      urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID};
+      res.redirect(`/urls/${newURL}`);
+    } else {
+      templateVars["message"] = "Your URL is not in correct format.";
+      res.render("urls_error", templateVars);
+    }
   } else {
-    let templateVars = {
-      userID: req.session.user_ID,
-      email: req.session.email,
-      message: "You do not have access to create shortURL"
-    };
+    templateVars["message"] = "You do not have access to create shortURL.";
     res.render("urls_error", templateVars);
   }
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-    delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls");
-  } else {
-    res.send("Sorry! You do not have access to delete this link");
-  }
-});
-
-app.post("/urls/:shortURL", (req, res) => {
-  if (req.session.user_ID) {
-    res.redirect(`/urls/${req.params.shortURL}`);
-  } else {
-    res.send("No access. Please login to edit the link");
-  }
-});
-
-app.post("/u/:shortURL", (req, res) => {
-  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    res.redirect("/urls");
-  } else {
-    res.redirect("/u/:shortURL");
-  }
-});
+// Edit URL
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { 
+  let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email,
-  }
+  };
   if (!(`${req.params.shortURL}` in urlDatabase)) {
-    templateVars["message"] = "Incorrect URL"
+    templateVars["message"] = "Incorrect URL.";
     res.render("urls_error", templateVars);
   } else {
     if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
@@ -210,7 +194,7 @@ app.get("/urls/:shortURL", (req, res) => {
       templateVars["longURL"] = urlDatabase[req.params.shortURL].longURL;
       res.render("urls_show", templateVars);
     } else {
-      templateVars["message"] = "You do not have access to this link";
+      templateVars["message"] = "You do not have access to this link.";
       res.render("urls_error", templateVars);
     }
   }
@@ -222,7 +206,7 @@ app.get("/u/:shortURL", (req, res) => {
     let templateVars = {
       userID: req.session.user_ID,
       email: req.session.email,
-      message: "Your shortenURL is incorrect"
+      message: "Your shortenURL is incorrect."
     };
     res.render("urls_error", templateVars);
   } else {
@@ -232,6 +216,41 @@ app.get("/u/:shortURL", (req, res) => {
     } else {
       res.redirect("http://" + longURL);
     }
+  }
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.send("Sorry! You do not have access to delete this link.");
+  }
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  if (req.session.user_ID) {
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    res.send("No access. Please login to edit the link.");
+  }
+});
+
+app.post("/u/:shortURL", (req, res) => {
+  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+    if (getDomainUrl(req.body.longURL)) {
+      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+      res.redirect("/urls");
+    } else {
+      let templateVars = {
+        userID: req.session.user_ID,
+        email: req.session.email,
+        message: "Your URL is not in correct format."
+      };
+      res.render("urls_error", templateVars);
+    }
+  } else {
+    res.redirect("/u/:shortURL");
   }
 });
 

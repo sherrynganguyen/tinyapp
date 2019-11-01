@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 
-const { checkUserByEmail, findUserByEmail, findUserURL } = require('../helpers.js');
+const { checkUserByEmail, findUserByEmail, findUserURL, findLongURL } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
@@ -71,6 +71,21 @@ describe('findUserURL', function() {
   it('should return object for special user', function() {
     const user = findUserURL("user2RandomID", testUrlDatabase);
     const expectedOutput = {i3BoGr: "https://www.google.ca"};
+    assert.deepEqual(user, expectedOutput);
+  });
+});
+
+//-----------------------TEST FOR findLongURL-----------------------//
+
+describe('findLongURL', function() {
+  it('should return "https://www.tsn.ca" for b6UTxQ ', function() {
+    const user = findLongURL("b6UTxQ", testUrlDatabase);
+    const expectedOutput = "https://www.tsn.ca";
+    assert.deepEqual(user, expectedOutput);
+  });
+  it('should return "https://www.google.ca" for i3BoGr ', function() {
+    const user = findLongURL("i3BoGr", testUrlDatabase);
+    const expectedOutput = "https://www.google.ca";
     assert.deepEqual(user, expectedOutput);
   });
 });

@@ -8,9 +8,6 @@ const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, fin
 
 const bcrypt = require('bcrypt');
 
-// const aes256 = require('aes256');
-// const key = 'sherry';
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name:'session',
@@ -77,9 +74,6 @@ app.get("/login", (req, res) => {
 */
 
 app.post("/register", (req, res) => {
-  // console.log(aes256.decrypt(key, "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA=="));
-
-  // console.log(aes256.decrypt(key, "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc="));
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email
@@ -92,7 +86,6 @@ app.post("/register", (req, res) => {
     res.render("urls_error", templateVars);
   } else {
     const userID = generateRandomString();
-    // const userID = aes256.encrypt(key, generateRandomString());
     const hashedPassword = bcrypt.hashSync(req.body.password, 5);
     req.session.user_ID = userID;
     req.session.email = req.body.email;
@@ -141,6 +134,7 @@ app.get("/urls", (req, res) => {
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email,
+    date: req.body.inputEstDate,
     urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
   };
   if (req.session.user_ID) {

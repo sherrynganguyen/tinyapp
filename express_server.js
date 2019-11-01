@@ -38,31 +38,58 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=" }
 };
 
+//TEST FLASH//
+
 //---------------------------------------------------------------------------------------//
 
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
 app.get("/", (req, res) => {
-  res.redirect("/urls");
+  if (req.session.user_ID) { 
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls", (req, res) => {
-  userID = req.session.user_ID;
-  email = req.session.email;
-  if (req.session.user_ID) {
+  // userID = req.session.user_ID;
+  // email = req.session.email;
+
+  if (req.session.user_ID) { 
     let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
       urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
-    };
+    }; 
     res.render('urls_index', templateVars);
   } else {
-    res.redirect('/login');
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: 'Please login or register',
+      urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+    }; 
+    res.render('urls_error', templateVars);
   }
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register",{ userID: req.session.user_ID });
+  if (req.session.user_ID) {
+    res.redirect("/urls");
+  } else {
+    res.render("urls_register",{ userID: req.session.user_ID });
+  }
 });
 
 app.get("/login", (req, res) => {
+  if (req.session.user_ID) {
+    res.redirect("/urls");
+  } else {
   res.render("urls_login", {userID: null});
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -82,21 +109,24 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   userID = req.session.user_ID;
   email = req.session.email;
-  let templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
-  };
-  if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-    if (!(`${req.params.shortURL}` in urlDatabase)) {
+
+  
+  if (!(`${req.params.shortURL}` in urlDatabase)) {
       res.send("Incorrect URL");
-    } else {
-      res.render("urls_show", templateVars);
-    }
   } else {
-    if (templateVars.longURL.indexOf('http') === 0) {
-      res.redirect(templateVars.longURL);
+    if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+      let templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL
+      };
+      res.render("urls_show", templateVars);
     } else {
-      res.redirect("http://" + templateVars.longURL);
+      res.send('You do not have access to this link')
+      // if (templateVars.longURL.indexOf('http') === 0) {
+      //   res.redirect(templateVars.longURL);
+      // } else {
+      //   res.redirect("http://" + templateVars.longURL);
+      // }
     }
   }
 });
@@ -106,6 +136,7 @@ app.get("/urls/:shortURL", (req, res) => {
 // });
 
 app.get("/u/:shortURL", (req, res) => {
+  // (if req.params.shortURL )
   let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   if (templateVars.longURL.indexOf('http') === 0) {
     res.redirect(templateVars.longURL);
@@ -121,22 +152,22 @@ app.get("/u/:shortURL", (req, res) => {
 */
 
 app.post("/register", (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
-    res.status("404").send("Incorrect email or password format.");
-  } else if (checkUserByEmail(req.body.email, users)) {
-    res.status("400").send("Email already exits");
-  } else {
-    const userID = aes256.encrypt(key, generateRandomString());
-    const hashedPassword = bcrypt.hashSync(req.body.password, 5);
-    req.session.user_ID = userID;
-    req.session.email = req.body.email;
-    users[userID] = {
-      id: userID,
-      ...req.body
-    };
-    users[userID].password = hashedPassword;
-    res.redirect("/urls");
-  }
+    if (req.body.email === "" || req.body.password === "") {
+      res.status("404").send("Incorrect email or password format.");
+    } else if (checkUserByEmail(req.body.email, users)) {
+      res.status("400").send("Email already exits");
+    } else {
+      const userID = aes256.encrypt(key, generateRandomString());
+      const hashedPassword = bcrypt.hashSync(req.body.password, 5);
+      req.session.user_ID = userID;
+      req.session.email = req.body.email;
+      users[userID] = {
+        id: userID,
+        ...req.body
+      };
+      users[userID].password = hashedPassword;
+      res.redirect("/urls");
+    }
 });
 
 app.post("/login", (req, res) => {
@@ -156,7 +187,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/urls");
+  res.redirect("/");
 });
 
 /* Edit/Delete feature for users
@@ -168,7 +199,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
   } else {
-    res.redirect("/urls");
+    res.send("Sorry! You do not have access to delete this link");
   }
 });
 

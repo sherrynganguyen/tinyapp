@@ -4,7 +4,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 
-const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL} = require('./helpers');
+const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, findLongURL} = require('./helpers');
 
 const bcrypt = require('bcrypt');
 
@@ -107,21 +107,35 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  userID = req.session.user_ID;
-  email = req.session.email;
+  // userID = req.session.user_ID;
+  // email = req.session.email;
 
   
   if (!(`${req.params.shortURL}` in urlDatabase)) {
-      res.send("Incorrect URL");
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: 'Incorrect URL',
+      urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+    }; 
+      res.render("urls_error", templateVars);
   } else {
     if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
       let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
       shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL].longURL
       };
       res.render("urls_show", templateVars);
     } else {
-      res.send('You do not have access to this link')
+      let templateVars = {
+        userID: req.session.user_ID,
+        email: req.session.email,
+        message: 'You do not have access to this link',
+        urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+      }; 
+      res.render("urls_error", templateVars)
       // if (templateVars.longURL.indexOf('http') === 0) {
       //   res.redirect(templateVars.longURL);
       // } else {
@@ -136,13 +150,52 @@ app.get("/urls/:shortURL", (req, res) => {
 // });
 
 app.get("/u/:shortURL", (req, res) => {
-  // (if req.params.shortURL )
-  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
-  if (templateVars.longURL.indexOf('http') === 0) {
-    res.redirect(templateVars.longURL);
+  console.log(req.params.shortURL);
+  // console.log(urlDatabase);
+  const shortURL = req.params.shortURL;
+  if (!findLongURL(shortURL, urlDatabase)) {
+    console.log(findLongURL(shortURL, urlDatabase));
+    // console.log(urlDatabase);
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: 'Your shortenURL is incorrect',
+      urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+    }; 
+    res.render("urls_error", templateVars)
   } else {
-    res.redirect("http://" + templateVars.longURL);
+    console.log(findLongURL(shortURL, urlDatabase));
+    // console.log(urlDatabase);
+    longURL = findLongURL(shortURL, urlDatabase);
+    if (longURL.indexOf('http') === 0) {
+      res.redirect(longURL);
+    } else {
+      res.redirect("http://" + longURL);
+    }
   }
+
+  // if (shortURL)
+  // if (req.params.shortURL ) {
+  //   const shortURL = req.params.shortURL;
+  //   const longURL = urlDatabase[shortURL].longURL;
+  //   // let templateVars = {
+  //   //   shortURL: req.params.shortURL, 
+  //   //   // longURL: urlDatabase[req.params.shortURL].longURL
+  //   // };
+  //   if (longURL.indexOf('http') === 0) {
+  //     res.redirect(longURL);
+  //   } else {
+  //     res.redirect("http://" + longURL);
+  //   }
+  // } else {
+  //   let templateVars = {
+  //     userID: req.session.user_ID,
+  //     email: req.session.email,
+  //     message: 'Your shortenURL is incorrect',
+  //     urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+  //   }; 
+  //   res.render("urls_error", templateVars)
+  // }
 });
 
 /*User registration endpoints.

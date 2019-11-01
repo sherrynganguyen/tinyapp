@@ -101,9 +101,19 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let newURL = `${generateRandomString()}`;
-  urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID};
-  res.redirect(`/urls/${newURL}`);
+  if (req.session.user_ID) {
+    let newURL = `${generateRandomString()}`;
+    urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID};
+    res.redirect(`/urls/${newURL}`);
+  } else {
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: 'You do not have access to create shortURL',
+      // urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+    }; 
+    res.render("urls_error", templateVars)    
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -233,7 +243,13 @@ app.post("/login", (req, res) => {
       req.session.email = users[userID].email;
       res.redirect("/urls");
     } else {
-      res.send('Incorrect password');
+      let templateVars = {
+        userID: req.session.user_ID,
+        email: req.session.email,
+        message: 'Incorrect password/username. Please try again!',
+        urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+      }; 
+      res.render("urls_error", templateVars)
     }
   }
 });
@@ -257,7 +273,17 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  res.redirect(`/urls/${req.params.shortURL}`);
+  if (req.session.user_ID) {
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    // let templateVars = {
+    //   userID: req.session.user_ID,
+    //   email: req.session.email,
+    //   message: 'You do not have access to edit shortURL',
+    //   // urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+    // }; 
+    res.send("No access. Please login to edit the link")
+  }
 });
 
 app.post("/u/:shortURL", (req, res) => {

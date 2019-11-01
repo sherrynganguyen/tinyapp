@@ -22,6 +22,8 @@ URL Template to Create New ShortURL
 - bcrypt
 - body-parser
 - cookie-session
+- get-domain-url
+- router
 
 
 ## DevDependencies

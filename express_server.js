@@ -8,8 +8,8 @@ const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, fin
 
 const bcrypt = require('bcrypt');
 
-const aes256 = require('aes256');
-const key = 'sherry';
+// const aes256 = require('aes256');
+// const key = 'sherry';
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -21,21 +21,21 @@ app.use(cookieSession({
 app.set("view engine", "ejs");
 
 const users = {
-  "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==": {
-    id: "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==",
+  "userRandomID": {
+    id: "userRandomID",
     email: "user@example.com",
     password: "$2b$10$f9ETSYlgdTFV53vpYMWjG.epNDqxBEIJWvKPfTZVowKtTp0wJYYX6"
   },
-  "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=": {
-    id: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=",
+  "user2RandomID": {
+    id: "user2RandomID",
     email: "user2@example.com",
     password: "$2b$10$yrRsbjMU6.9z1WhUaqGh0OUtx51oC9NdZj7fIXaGIOAJ/DuLIoozi"
   }
 };
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA==" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc=" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
 //---------------------------------------------------------------------------------------//
@@ -77,6 +77,9 @@ app.get("/login", (req, res) => {
 */
 
 app.post("/register", (req, res) => {
+  // console.log(aes256.decrypt(key, "e2yh32gdTnuPchcElCmV+S6ZIKQ9x7mkxq0YMA=="));
+
+  // console.log(aes256.decrypt(key, "Sw5Rg2O2Sa5Vimm8HTcwZ/QpNKbXnutYJxuXmKc="));
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email
@@ -88,7 +91,8 @@ app.post("/register", (req, res) => {
     templateVars["message"] = "Email existed. Process to login";
     res.render("urls_error", templateVars);
   } else {
-    const userID = aes256.encrypt(key, generateRandomString());
+    const userID = generateRandomString();
+    // const userID = aes256.encrypt(key, generateRandomString());
     const hashedPassword = bcrypt.hashSync(req.body.password, 5);
     req.session.user_ID = userID;
     req.session.email = req.body.email;

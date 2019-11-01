@@ -19,7 +19,6 @@
   },
   "homepage": "https://github.com/sherrynganguyen/tinyapp#readme",
   "dependencies": {
-    "aes256": "^1.0.4",
     "bcrypt": "2.0.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.4",

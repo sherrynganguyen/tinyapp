@@ -200,6 +200,47 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  if (req.session.user_ID) {
+    res.redirect(`/urls/${req.params.shortURL}`);
+  } else {
+    res.send("No access. Please login to edit the link.");
+  }
+});
+
+// Block other to edit the link
+
+app.post("/u/:shortURL", (req, res) => {
+  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+    if (getDomainUrl(req.body.longURL)) {
+      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+      res.redirect("/urls");
+    } else {
+      let templateVars = {
+        userID: req.session.user_ID,
+        email: req.session.email,
+        message: "Your URL is not in correct format."
+      };
+      res.render("urls_error", templateVars);
+    }
+  } else {
+    res.redirect("/");
+  }
+});
+
+//Delete URL
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.send("Sorry! You do not have access to delete this link.");
+  }
+});
+
+// Redirect to longURL
+
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   if (!findLongURL(shortURL, urlDatabase)) {
@@ -216,41 +257,6 @@ app.get("/u/:shortURL", (req, res) => {
     } else {
       res.redirect("http://" + longURL);
     }
-  }
-});
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-    delete urlDatabase[req.params.shortURL];
-    res.redirect("/urls");
-  } else {
-    res.send("Sorry! You do not have access to delete this link.");
-  }
-});
-
-app.post("/urls/:shortURL", (req, res) => {
-  if (req.session.user_ID) {
-    res.redirect(`/urls/${req.params.shortURL}`);
-  } else {
-    res.send("No access. Please login to edit the link.");
-  }
-});
-
-app.post("/u/:shortURL", (req, res) => {
-  if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
-    if (getDomainUrl(req.body.longURL)) {
-      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-      res.redirect("/urls");
-    } else {
-      let templateVars = {
-        userID: req.session.user_ID,
-        email: req.session.email,
-        message: "Your URL is not in correct format."
-      };
-      res.render("urls_error", templateVars);
-    }
-  } else {
-    res.redirect("/u/:shortURL");
   }
 });
 

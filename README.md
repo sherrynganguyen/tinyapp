@@ -12,7 +12,7 @@ URL Template of Register Page
 URL Template to Edit the Link
 ![alt tag](/docs/edit.png)
 URL Template to Create New ShortURL
-![alt tag](/docs/Screenshot from 2019-10-31 22-40-06.png)
+![alt tag](/docs/new.png)
 
 ## Dependencies
 

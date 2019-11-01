@@ -60,14 +60,14 @@ app.get("/urls", (req, res) => {
       email: req.session.email,
       urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
     };
-    res.render('urls_index', templateVars);
+    res.render("urls_index", templateVars);
   } else {
     let templateVars = {
       userID: req.session.user_ID,
       email: req.session.email,
-      message: 'Please login or register',
+      message: "Please login or register",
     };
-    res.render('urls_error', templateVars);
+    res.render("urls_error", templateVars);
   }
 });
 
@@ -91,7 +91,7 @@ app.get("/urls/new", (req, res) => {
   if (req.session.user_ID) {
     res.render("urls_new", {userID: req.session.user_ID, email: req.session.email});
   } else {
-    res.redirect('/urls');
+    res.redirect("/urls");
   }
 });
 
@@ -104,7 +104,7 @@ app.post("/urls", (req, res) => {
     let templateVars = {
       userID: req.session.user_ID,
       email: req.session.email,
-      message: 'You do not have access to create shortURL',
+      message: "You do not have access to create shortURL"
     };
     res.render("urls_error", templateVars);
   }
@@ -115,7 +115,7 @@ app.get("/urls/:shortURL", (req, res) => {
     let templateVars = {
       userID: req.session.user_ID,
       email: req.session.email,
-      message: 'Incorrect URL',
+      message: "Incorrect URL",
     };
     res.render("urls_error", templateVars);
   } else {
@@ -131,7 +131,7 @@ app.get("/urls/:shortURL", (req, res) => {
       let templateVars = {
         userID: req.session.user_ID,
         email: req.session.email,
-        message: 'You do not have access to this link',
+        message: "You do not have access to this link"
       };
       res.render("urls_error", templateVars);
     }
@@ -144,7 +144,7 @@ app.get("/u/:shortURL", (req, res) => {
     let templateVars = {
       userID: req.session.user_ID,
       email: req.session.email,
-      message: 'Your shortenURL is incorrect',
+      message: "Your shortenURL is incorrect"
     };
     res.render("urls_error", templateVars);
   } else {
@@ -165,9 +165,19 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    res.status("404").send("Incorrect email or password format.");
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: "Incorrect password/username format"
+    };
+    res.render("urls_error", templateVars);
   } else if (checkUserByEmail(req.body.email, users)) {
-    res.status("400").send("Email already exits");
+    let templateVars = {
+      userID: req.session.user_ID,
+      email: req.session.email,
+      message: "Email existed. Process to login",
+    };
+    res.render("urls_error", templateVars);
   } else {
     const userID = aes256.encrypt(key, generateRandomString());
     const hashedPassword = bcrypt.hashSync(req.body.password, 5);
@@ -185,7 +195,7 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const userID = findUserByEmail(req.body.email, users);
   if (userID === "") {
-    res.send('Email does not exist in our site.');
+    res.send("Email does not exist in our site.");
   } else {
     if (bcrypt.compareSync(req.body.password, users[userID].password)) {
       req.session.user_ID = userID;
@@ -195,8 +205,7 @@ app.post("/login", (req, res) => {
       let templateVars = {
         userID: req.session.user_ID,
         email: req.session.email,
-        message: 'Incorrect password/username. Please try again!',
-        urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
+        message: "Incorrect password/username. Please try again!"
       };
       res.render("urls_error", templateVars);
     }
@@ -233,9 +242,9 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/u/:shortURL", (req, res) => {
   if (req.session.user_ID && req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    res.redirect(`/urls`);
+    res.redirect("/urls");
   } else {
-    res.redirect(`/u/:shortURL`);
+    res.redirect("/u/:shortURL");
   }
 });
 

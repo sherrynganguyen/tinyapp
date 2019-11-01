@@ -151,7 +151,7 @@ app.get("/urls/new", (req, res) => {
   if (req.session.user_ID) {
     res.render("urls_new", {userID: req.session.user_ID, email: req.session.email});
   } else {
-    res.redirect("/urls");
+    res.redirect("/");
   }
 });
 

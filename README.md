@@ -4,15 +4,15 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product Screenshot
 URL Template when User logged in
-!(docs/urls.png)
+![alt tag](docs/urls.png)
 URL Template as Default
-!(/docs/login.png)
+![alt tag](/docs/login.png)
 URL Template of Register Page
-!(/docs/register.png)
+![alt tag](/docs/register.png)
 URL Template to Edit the Link
-!(/docs/edit.png)
+![alt tag](/docs/edit.png)
 URL Template to Create New ShortURL
-!(/docs/Screenshot from 2019-10-31 22-40-06.png)
+![alt tag](/docs/Screenshot from 2019-10-31 22-40-06.png)
 
 ## Dependencies
 

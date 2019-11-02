@@ -1,8 +1,9 @@
 const express = require("express");
 const route = express.Router();
 const getDomainUrl = require('get-domain-url');
-
-const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, findLongURL, submitDate, urlDate} = require('../helpers');
+const time = require('express-timestamp');
+route.use(time.init);
+const {generateRandomString, checkUserByEmail, findUserByEmail, findLongURL, findUserURL, uniqueV, arr} = require('../helpers');
 
 const bcrypt = require('bcrypt');
 
@@ -20,8 +21,13 @@ const users = {
 };
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID", date: "Oct 08, 2019"},
-  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID", date: "Aug 07, 2018"}
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID", date: "2019-10-08", view: 0, uniqueV: 0},
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID", date: "2018-11-19", view: 0, uniqueV: 0}
+};
+
+const uniqueVisit = {
+  b6UTxQ: ["12se3d"],
+  i3BoGr: []
 };
 
 //---------------------------------------------------------------------------------------//
@@ -120,15 +126,11 @@ route.post("/logout", (req, res) => {
 // Specific User features - List of URLs
 
 route.get("/urls", (req, res) => {
-  console.log(urlDatabase);
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email,
-    // date: urlDate(req.session.user_ID, urlDatabase),
-    urlDatabase: urlDatabase
-    // urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
+    urlDatabase: findUserURL(req.session.user_ID, urlDatabase)
   };
-  // console.log(urlDatabase);
   if (req.session.user_ID) {
     res.render("urls_index", templateVars);
   } else {
@@ -155,11 +157,13 @@ route.post("/urls", (req, res) => {
     email: req.session.email
   };
   if (req.session.user_ID) {
-    // console.log(submitDate());
     let newURL = `${generateRandomString()}`;
     if (getDomainUrl(req.body.longURL)) {
-      // urlDatabase[newURL]["date"] = submitDate();
-      urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID, date: submitDate()};
+      //stretch: time created
+      const hour = req.timestamp.tz("America/Los_Angeles").format();
+      const date = hour.substring(0,10);
+      //
+      urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID, date: date , view: 0, uniqueV: 0};
       res.redirect(`/urls/${newURL}`);
     } else {
       templateVars["message"] = "Your URL is not in correct format.";
@@ -185,6 +189,9 @@ route.get("/urls/:shortURL", (req, res) => {
     if (req.session.user_ID === urlDatabase[req.params.shortURL].userID) {
       templateVars["shortURL"] = req.params.shortURL;
       templateVars["longURL"] = urlDatabase[req.params.shortURL].longURL;
+      templateVars["date"] = urlDatabase[req.params.shortURL].date;
+      templateVars["visit"] = urlDatabase[req.params.shortURL].view;
+      templateVars["unique"] = urlDatabase[req.params.shortURL].uniqueV;
       res.render("urls_show", templateVars);
     } else {
       templateVars["message"] = "You do not have access to this link.";
@@ -244,7 +251,13 @@ route.get("/u/:shortURL", (req, res) => {
     };
     res.render("urls_error", templateVars);
   } else {
-    urlDatabase["Time Visted"] += 1;
+    if (req.session.user_ID) {
+      urlDatabase[req.params.shortURL].view += 1;
+      urlDatabase[req.params.shortURL].uniqueV += 1;
+
+    } else {
+      urlDatabase[req.params.shortURL].view += 1;
+    }
     let longURL = findLongURL(shortURL, urlDatabase);
     if (longURL.indexOf('http') === 0) {
       res.redirect(longURL);

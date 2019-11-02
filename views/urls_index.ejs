@@ -13,27 +13,32 @@
     <%include ./partials/_header %>
   </head>
   <main style="margin: 1em;">
+    <div class= "d-flex justify-content-between">
     <h3>My URLs</h3>
+    <form method="POST" action= "/urls/new"><button type="submit" class="btn btn-outline-info btn-lg" value="submit">Create a New Link</button></form>
+    </div>
     <table class="table">
       <thead>
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
-          <th scope="col">Date</th>
+          <th scope="col">Date Created</th>
+          <th scope="col">Total Visits</th>
           <th scope="col">Edit</th>
           <th scope="col">Delete</th>
         </tr>
       </thead>
       <tbody>
-        <% for (let shortURL in urlDatabase) { %>
+          <% for (let shortURL in urlDatabase) { %>
           <tr>
               <td><%= shortURL %></td>
-              <td><%= urlDatabase[shortURL].longURL %></td>
+              <td><%= urlDatabase[shortURL].longURL%></td>
               <td><%= urlDatabase[shortURL].date %></td>
+              <td><%= urlDatabase[shortURL].view %></td>
               <td><form method="POST" action= "/urls/<%= shortURL %>"><button type="submit" class="btn btn-outline-primary btn-lg" value="submit">Edit</button></form></td>
-              <td><form method="POST" action= "/urls/<%= shortURL %>/delete"><button type="submit" class="btn btn-outline-danger btn-lg" value="Delete">Delete</button></form></td>
+              <td><form method="POST" action= "/urls/<%= shortURL %>/delete"><button type="submit" class="btn btn-outline-danger btn-lg" value="submit">Delete</button></form></td>
           </tr>
-        <% }; %>
+          <% }; %>
         </tbody>
     </table>
   </main>

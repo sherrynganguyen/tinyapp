@@ -32,20 +32,30 @@ const findUserURL = function(userID, database) {
   let userURLList = {};
   for (let shortURL in database) {
     if (userID === database[shortURL].userID) {
-      userURLList[shortURL] = database[shortURL].longURL;
+      userURLList[shortURL] = {longURL: database[shortURL].longURL, date: database[shortURL].date,view: database[shortURL].view};
     }
   }
   return userURLList;
 };
 
-const urlDate = function(userID, database) {
-  let dateList = [];
-  for (let shortURL in database) {
-    if (userID === database[shortURL].userID) {
-      dateList.push(database[shortURL].date);
+const arr = function(id, array1) {
+  let result = false;
+  for (let i in array1) {
+    if (id === array1[i]) {
+      result = true;
     }
   }
-  return dateList;
+  return result;
+};
+
+const uniqueV = function(userID, shortURL, obj) {
+  let array = obj[shortURL];
+  if (!arr(userID, array)) {
+    return array.length;
+  } else {
+    array.push(userID);
+    return array.length;
+  }
 };
 
 const findLongURL = function(shortURL, database) {
@@ -60,19 +70,12 @@ const findLongURL = function(shortURL, database) {
   return longURL;
 };
 
-const submitDate = function() {
-  let date = Date(Date.now());
-  date = date.substring(4,15);
-  return date;
-};
-
 module.exports = {
   generateRandomString,
   checkUserByEmail,
   findUserByEmail,
-  findUserURL,
   findLongURL,
-  submitDate,
-  urlDate
-
+  findUserURL,
+  arr,
+  uniqueV
 };

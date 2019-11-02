@@ -13,7 +13,6 @@ app.use(cookieSession({
 }));
 
 app.set("view engine", "ejs");
-
 app.use('/', route);
 
 app.listen(PORT, () => {

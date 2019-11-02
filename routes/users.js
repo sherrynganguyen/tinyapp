@@ -2,7 +2,7 @@ const express = require("express");
 const route = express.Router();
 const getDomainUrl = require('get-domain-url');
 
-const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, findLongURL} = require('../helpers');
+const {generateRandomString, checkUserByEmail, findUserByEmail, findUserURL, findLongURL, submitDate, urlDate} = require('../helpers');
 
 const bcrypt = require('bcrypt');
 
@@ -20,8 +20,8 @@ const users = {
 };
 
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "userRandomID", date: "Oct 08, 2019"},
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID", date: "Aug 07, 2018"}
 };
 
 //---------------------------------------------------------------------------------------//
@@ -120,11 +120,15 @@ route.post("/logout", (req, res) => {
 // Specific User features - List of URLs
 
 route.get("/urls", (req, res) => {
+  console.log(urlDatabase);
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email,
-    urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
+    // date: urlDate(req.session.user_ID, urlDatabase),
+    urlDatabase: urlDatabase
+    // urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
   };
+  // console.log(urlDatabase);
   if (req.session.user_ID) {
     res.render("urls_index", templateVars);
   } else {
@@ -151,9 +155,11 @@ route.post("/urls", (req, res) => {
     email: req.session.email
   };
   if (req.session.user_ID) {
+    // console.log(submitDate());
     let newURL = `${generateRandomString()}`;
     if (getDomainUrl(req.body.longURL)) {
-      urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID};
+      // urlDatabase[newURL]["date"] = submitDate();
+      urlDatabase[newURL] = {longURL: req.body.longURL, userID: req.session.user_ID, date: submitDate()};
       res.redirect(`/urls/${newURL}`);
     } else {
       templateVars["message"] = "Your URL is not in correct format.";

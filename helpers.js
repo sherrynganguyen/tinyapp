@@ -38,6 +38,16 @@ const findUserURL = function(userID, database) {
   return userURLList;
 };
 
+const urlDate = function(userID, database) {
+  let dateList = [];
+  for (let shortURL in database) {
+    if (userID === database[shortURL].userID) {
+      dateList.push(database[shortURL].date);
+    }
+  }
+  return dateList;
+};
+
 const findLongURL = function(shortURL, database) {
   let longURL = "";
   for (let url in database) {
@@ -50,10 +60,19 @@ const findLongURL = function(shortURL, database) {
   return longURL;
 };
 
+const submitDate = function() {
+  let date = Date(Date.now());
+  date = date.substring(4,15);
+  return date;
+};
+
 module.exports = {
   generateRandomString,
   checkUserByEmail,
   findUserByEmail,
   findUserURL,
-  findLongURL
+  findLongURL,
+  submitDate,
+  urlDate
+
 };

@@ -9,8 +9,8 @@ URL Template as Default
 ![alt tag](/docs/login.png)
 URL Template of Register Page
 ![alt tag](/docs/register.png)
-URL Template to Edit the Link
-![alt tag](/docs/edit.png)
+URL Template to Edit the Link - Analytics
+![alt tag](/docs/shorturl.png)
 URL Template to Create New ShortURL
 ![alt tag](/docs/new.png)
 
@@ -24,6 +24,7 @@ URL Template to Create New ShortURL
 - cookie-session
 - get-domain-url
 - router
+- express-timestamp
 
 
 ## DevDependencies

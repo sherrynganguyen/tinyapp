@@ -123,7 +123,6 @@ route.get("/urls", (req, res) => {
   let templateVars = {
     userID: req.session.user_ID,
     email: req.session.email,
-    date: req.body.inputEstDate,
     urlDatabase:findUserURL(req.session.user_ID, urlDatabase)
   };
   if (req.session.user_ID) {
@@ -239,6 +238,7 @@ route.get("/u/:shortURL", (req, res) => {
     };
     res.render("urls_error", templateVars);
   } else {
+    urlDatabase["Time Visted"] += 1;
     let longURL = findLongURL(shortURL, urlDatabase);
     if (longURL.indexOf('http') === 0) {
       res.redirect(longURL);

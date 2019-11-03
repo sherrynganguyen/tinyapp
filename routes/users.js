@@ -3,7 +3,7 @@ const route = express.Router();
 const getDomainUrl = require('get-domain-url');
 const time = require('express-timestamp');
 route.use(time.init);
-const {generateRandomString, checkUserByEmail, findUserByEmail, findLongURL, findUserURL, uniqueV, arr} = require('../helpers');
+const {generateRandomString, checkUserByEmail, findUserByEmail, findLongURL, findUserURL} = require('../helpers');
 
 const bcrypt = require('bcrypt');
 
@@ -28,7 +28,7 @@ const urlDatabase = {
 const uniqueVisit = {
   b6UTxQ: ["12se3d"],
   i3BoGr: []
-};
+}
 
 //---------------------------------------------------------------------------------------//
 
@@ -253,11 +253,11 @@ route.get("/u/:shortURL", (req, res) => {
   } else {
     if (req.session.user_ID) {
       urlDatabase[req.params.shortURL].view += 1;
-      urlDatabase[req.params.shortURL].uniqueV += 1;
+      urlDatabase[req.params.shortURL].uniqueV += 1; 
 
     } else {
       urlDatabase[req.params.shortURL].view += 1;
-    }
+    }  
     let longURL = findLongURL(shortURL, urlDatabase);
     if (longURL.indexOf('http') === 0) {
       res.redirect(longURL);

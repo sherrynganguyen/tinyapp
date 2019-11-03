@@ -38,26 +38,6 @@ const findUserURL = function(userID, database) {
   return userURLList;
 };
 
-const arr = function(id, array1) {
-  let result = false;
-  for (let i in array1) {
-    if (id === array1[i]) {
-      result = true;
-    }
-  }
-  return result;
-};
-
-const uniqueV = function(userID, shortURL, obj) {
-  let array = obj[shortURL];
-  if (!arr(userID, array)) {
-    return array.length;
-  } else {
-    array.push(userID);
-    return array.length;
-  }
-};
-
 const findLongURL = function(shortURL, database) {
   let longURL = "";
   for (let url in database) {
@@ -70,12 +50,11 @@ const findLongURL = function(shortURL, database) {
   return longURL;
 };
 
+
 module.exports = {
   generateRandomString,
   checkUserByEmail,
   findUserByEmail,
   findLongURL,
   findUserURL,
-  arr,
-  uniqueV
 };
